@@ -39,7 +39,7 @@ jobs:
       run: |
         uv run pytest tests/ -v --cov=uup_dump_api --cov-report=xml --cov-report=term
     
-    - name: Upload coverage to Codecov
+    - name: Upload coverage ` Codecov
       uses: codecov/codecov-action@v4
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
       with:
