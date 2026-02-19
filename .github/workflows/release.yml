@@ -11,14 +11,30 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Verify tag matches pyproject.toml version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TOML_VERSION=$(grep -m1 '^version' pyproject.toml | sed 's/.*= *"\(.*\)"/\1/')
+          echo "Tag version:     $TAG_VERSION"
+          echo "pyproject.toml:  $TOML_VERSION"
+          if [ "$TAG_VERSION" != "$TOML_VERSION" ]; then
+            echo "❌ Version mismatch: tag v$TAG_VERSION != pyproject.toml $TOML_VERSION"
+            exit 1
+          fi
+          echo "✅ Versions match"
+
       - uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           extra_nix_config: experimental-features = nix-command flakes
+
       - name: Build dist
         run: nix develop .#python312 --command uv build
+
       - name: Check dist before release
         run: echo "Current dir:" && pwd && echo "Listing dist:" && ls -lah dist
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
