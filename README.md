@@ -11,12 +11,6 @@ A Python wrapper for the [UUP Dump API](https://uupdump.net/) with comprehensive
 - ✅ Type hints for better IDE support
 - ✅ User-friendly error messages mapped from API error codes
 
-## Installation
-
-```bash
-pip install requests
-```
-
 ## Quick Start
 
 ```python
