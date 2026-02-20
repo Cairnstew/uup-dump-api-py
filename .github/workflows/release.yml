@@ -32,7 +32,7 @@ jobs:
       - name: Use Cachix cache
         uses: cachix/cachix-action@v15
         with:
-          name: uup-dump-api-py-cache
+          name: uup-dump-api-py-cache   
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Build dist
@@ -40,6 +40,25 @@ jobs:
 
       - name: Check dist before release
         run: echo "Current dir:" && pwd && echo "Listing dist:" && ls -lah dist
+
+      - name: Upload to TestPyPI
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
+        run: nix develop .#python312 --command uv publish --publish-url https://test.pypi.org/legacy/
+
+      - name: Validate TestPyPI install
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          nix develop .#python312 --command pip install \
+            --index-url https://test.pypi.org/simple/ \
+            --extra-index-url https://pypi.org/simple/ \
+            uup-dump-api-py==$TAG_VERSION
+          nix develop .#python312 --command python -c "import uup_dump_api; print('✅ Import successful')"
+
+      - name: Upload to PyPI
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: nix develop .#python312 --command uv publish
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
